@@ -1,0 +1,10 @@
+# Virtual environments
+venv/
+env/
+
+# Caches and compiled bytecode
+.pytest_cache/
+.mypy_cache/
+__pycache__/
+*.pyc
+*.pyo
