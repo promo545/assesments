@@ -6,3 +6,8 @@ class RetryStrategy(ABC):
     @abstractmethod
     def execute(self, operation : Callable[[], Any]) -> Tuple[Any, int]:
         pass
+
+    @property
+    @abstractmethod
+    def attempt_count(self):
+        pass
