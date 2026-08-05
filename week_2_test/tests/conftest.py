@@ -1,5 +1,5 @@
 from src.notification_channels.base import Base
-from src.strategies.retry_stategy import RetryStrategy
+from src.strategies.retry_strategy import RetryStrategy
 from src.notification_repository import NotificationRepository
 from src.factory import NotificationFactory
 from src.models import NotificationRequest, DeliveryRecord

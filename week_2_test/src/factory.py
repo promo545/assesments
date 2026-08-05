@@ -14,13 +14,15 @@ class NotificationFactory():
         'sms' : SMSChannel
     }
 
+    @classmethod
     def create(cls, channel_type : str) -> Base:
-        
-        if channel_type not in cls.__supported_channels:
-            raise UnsupportedChannel("Requested channel not supported")
-        requested_channel = cls.__channel_map[channel_type]
+            
+        try:
+            channel_class = cls.__channel_map[channel_type]
+        except KeyError as exc:
+            raise UnsupportedChannel(
+                f"Unsupported channel: {channel_type}"
+            ) from exc
 
-        return requested_channel()
-        
-
+        return channel_class()
 

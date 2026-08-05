@@ -8,7 +8,7 @@ class NotificationRequest:
     channel : str
     message : str
     email_address : str | None = None
-    phone_number : int | None = None
+    phone_number : str | None = None
     device_token : str | None = None
 
 @dataclass
