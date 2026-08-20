@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock
 from src.document_processing.exceptions import OwnerBlockedError
-from src.document_processing.processor import DocumentProcessingervice
+from src.document_processing.processor import DocumentProcessor
 from src.document_processing.models import OwnerPolicy
 
 def test_owner_policy_evaluates_blocked_status_correctly():
@@ -13,7 +13,7 @@ def test_submit_raises_owner_blocked_error_when_policy_rejects_owner():
     mock_policy = Mock(spec=OwnerPolicy)
     mock_policy.is_blocked.return_value = True
 
-    processor = DocumentProcessingervice(
+    processor = DocumentProcessor(
         storage=Mock(),
         scanner=Mock(),
         repo=Mock(),

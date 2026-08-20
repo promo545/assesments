@@ -1,11 +1,9 @@
 from enum import Enum, auto
 from datetime import datetime
 from dataclasses import dataclass
-
 from src.document_processing.exceptions import InvalidFileName
 
 class DocumentStatus(Enum):
-    
     PENDING = auto()
     SCANNING = auto()
     PROCESSED = auto()
@@ -15,10 +13,11 @@ class DocumentStatus(Enum):
 class ScanResult(Enum):
     CLEAN = auto()
     INFECTED = auto()
+
 @dataclass
 class Document:
-    document_id : str
-    owner_id : str
+    document_id: str
+    owner_id: str
     filename: str
     storage_key: str
     status: DocumentStatus
@@ -27,35 +26,22 @@ class Document:
     failure_reason: str | None = None
 
 class FileNameRules:
-
     @staticmethod
     def validate_file_name(filename: str) -> bool:
         allowed_extensions = ['pdf', 'txt', 'csv']
 
-
-        def has_white_space(filename : str):
-            return any(c.isspace() for c in filename)
-
-        
         if not isinstance(filename, str):
             raise InvalidFileName('Filename is not of type string')
-
-        if filename is None or filename == "":
-            raise InvalidFileName('Filename cannot be empty')
-        
-        if has_white_space(filename):
-            raise InvalidFileName('Filename must not have whitespaces')
-        
+        if filename is None or not filename.strip():
+            raise InvalidFileName('Filename cannot be empty or only whitespace')
         if len(filename) > 255:
-            raise InvalidFileName('Name cannot have more than 255 chars')
+            raise InvalidFileName('Name cannot exceed 255 characters')
         
         extension = filename.rsplit('.', 1)[-1].lower()
-
         if extension not in allowed_extensions:
-            raise InvalidFileName(f'File extension not supported; allowed extension = {allowed_extensions}')
+            raise InvalidFileName(f'File extension not supported. Allowed: {allowed_extensions}')
 
         return True  
-
 
 class OwnerPolicy:
     def __init__(self, blocked_owners: list[str] = None):

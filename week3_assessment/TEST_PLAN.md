@@ -41,5 +41,5 @@ This document outlines the testing strategy for the document processing componen
 ## 8. Unexpected Failures (The "Nasty Production Failure")
 *   Repository save fails, triggering storage cleanup, but the storage cleanup (`delete`) also fails.
 
-## 9. Blocked Owner Policy (TDD Challenge)
+## 9. Blocked Owner Policy
 *   Reject submission immediately if the owner ID is on the blocked list.
