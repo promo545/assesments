@@ -1,0 +1,3 @@
+class TicketNotFound(Exception):
+    pass
+
