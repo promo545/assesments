@@ -36,6 +36,10 @@ git clone <repo-url> && cd week5_assessment
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
 pip install pytest pytest-cov httpx fakeredis      # test tooling
+
+or 
+
+uv sync
 ```
 
 Create a `.env` file (never commit it). The variables the app reads:
@@ -64,7 +68,27 @@ Run the tests with a coverage report:
 pytest -s tests/
 pytest --cov=bookmark_api --cov-report=term-missing tests/
 ```
+reult : -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+===================================== tests coverage =====================================
+____________________ coverage: platform linux, python 3.14.3-final-0 _____________________
 
+Name                                    Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------
+src/bookmark_api/__init__.py                0      0   100%
+src/bookmark_api/auth.py                   38      1    97%   48
+src/bookmark_api/database.py               13      3    77%   20-23
+src/bookmark_api/main.py                   17      0   100%
+src/bookmark_api/models.py                 23      0   100%
+src/bookmark_api/redis_client.py           11      1    91%   22
+src/bookmark_api/routers/__init__.py        0      0   100%
+src/bookmark_api/routers/auth.py           27      0   100%
+src/bookmark_api/routers/bookmarks.py      24      0   100%
+src/bookmark_api/schemas.py                11      0   100%
+src/bookmark_api/services.py               84      6    93%   59-60, 91-94
+src/bookmark_api/utils.py                   7      2    71%   6, 9
+---------------------------------------------------------------------
+TOTAL                                     255     13    95%
+============================ 36 passed, 73 warnings in 6.60s =============================
 ## API
 
 | Method | Path | Auth | Description |
@@ -201,7 +225,3 @@ By default a Pydantic model is built from a dict (or another model). A SQLAlchem
 **3. Why `os.getenv()` is typed `str | None`**
 If the variable is not set, `os.getenv` returns `None` (or the default you pass), so its declared return type is `str | None`. `int(os.getenv("PORT"))` could therefore be `int(None)`, which raises `TypeError` at runtime, and type checkers warn about it. The fixes are to pass a string default (`int(os.getenv("PORT", "8000"))`, which narrows the type to `str`), to use `os.environ["PORT"]` so a missing value fails immediately with `KeyError`, or to check for `None` explicitly. Required secrets such as `JWT_SECRET` use `os.environ[...]` so the app fails fast at startup.
 
-**4. Two places where plausible-looking code hid a production bug**
-
-- **Cache invalidation key.** The first version of `create`, `update_bookmark` and `delete_bookmark` called `redis.delete(f"{REDIS_SUMMARY_KEY_PREFIX}user_id")`. It ran without errors, but the missing braces meant it deleted a literal key named `bookmarksummary:user_id` instead of the user's real key, so summaries stayed stale until the TTL expired. A mock-based test asserting that `delete` was called would still pass. I verified and fixed it with an invalidation test using fakeredis that warms the cache, performs the write, and asserts that the **real key no longer exists**.
-- **Duplicate registration.** `create_user` looked correct and passed every happy-path test, but `email` is unique, so registering the same address twice raised an unhandled `IntegrityError` and returned a 500. It now catches the error, rolls back and returns 409, and a test registers the same email twice to prove it.
