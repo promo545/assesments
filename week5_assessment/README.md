@@ -112,17 +112,88 @@ Design decisions:
 
 ## Database models & Alembic
 
-`User` (UUID id, username, unique email, password_hash, created_at) and `BookMark` (int id, url, title, category, notes, created_at, user_id FK → users.id, last_modified_at) use `Mapped[...]` annotations. One user has many bookmarks, and every bookmark belongs to exactly one user.
+The project uses SQLAlchemy 2.0 ORM models for `User` and `BookMark`.
 
-Migration history:
+### User model
 
-1. `<revision id>`: initial schema (`users`, `bookmarks`)
-2. **TODO:** name your second migration and the model change it made, and note what you checked when you inspected the generated file.
+`User` contains:
 
-**`alembic revision --autogenerate` vs `alembic upgrade head`**
+- `id`: UUID primary key
+- `username`: string
+- `email`: unique and indexed string
+- `password_hash`: hashed password
+- `created_at`: datetime
 
-- `alembic revision --autogenerate -m "msg"` compares `target_metadata` (`Base.metadata`, i.e. the models) with the current database schema and **writes a new migration script** into `alembic/versions/`. It does not change the database. The script must be inspected, because autogenerate can miss or misread things (a rename looks like drop + add, some defaults and type changes are not detected).
-- `alembic upgrade head` **runs** the migration scripts that have not been applied yet, in order, up to the newest one. This is what actually changes the database, and it records the current revision in the `alembic_version` table.
+### BookMark model
+
+`BookMark` contains:
+
+- `id`: integer primary key
+- `url`: string
+- `title`: string
+- `category`: string
+- `notes`: optional string
+- `created_at`: datetime
+- `user_id`: UUID foreign key referencing `users.id`
+- `last_modified_at`: optional datetime
+
+A bookmark always belongs to one user through `user_id`.
+
+The `user_id` is not accepted from the client when creating a bookmark. It is derived from the authenticated user.
+
+### Migration history
+
+The initial migration is:
+
+`1186b62f930b_initial_tables.py`
+
+It creates the `users` and `bookmarks` tables, adds the unique email index, and creates the foreign key from `bookmarks.user_id` to `users.id`.
+
+The next revision is:
+
+`8e704f4fc56b_default_for_last_modified_at.py`
+
+This revision was generated after modifying the model, but Alembic produced an empty migration. The generated `upgrade()` and `downgrade()` functions contain only `pass`.
+
+I kept and inspected this migration because it demonstrates an important point: `alembic revision --autogenerate` does not guarantee that Alembic will detect the schema change I intended.
+
+The next revision is:
+
+`b40c16f579ba_default_for_last_modified_at.py`
+
+This migration changes `bookmarks.last_modified_at` from `nullable=False` to `nullable=True`.
+
+Its downgrade reverses that change and makes the column non-nullable again.
+
+### `alembic revision --autogenerate` vs `alembic upgrade head`
+
+`alembic revision --autogenerate -m "message"` compares the SQLAlchemy model metadata with the current database schema and creates a new migration script inside `alembic/versions/`.
+
+It does not modify the database.
+
+The generated migration must be inspected before applying it because Alembic may:
+
+- generate an empty migration
+- miss some changes
+- interpret a change differently from what was intended
+- require manual edits
+
+`alembic upgrade head` executes all unapplied migrations in revision order until the database reaches the latest migration.
+
+The workflow used in this project is:
+
+1. Modify the SQLAlchemy model.
+2. Run `alembic revision --autogenerate -m "description"`.
+3. Inspect the generated `upgrade()` and `downgrade()` functions.
+4. Adjust the migration manually if necessary.
+5. Run `alembic upgrade head`.
+6. Verify the resulting database schema.
+
+The migration chain for this project is:
+
+`1186b62f930b`
+→ `8e704f4fc56b`
+→ `b40c16f579ba`
 
 ## Authentication (README questions, Part 2)
 
