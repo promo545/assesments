@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "library-lending-system"
+version = "0.1.0"
+description = "Week 6 production FastAPI assessment"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "psycopg[binary]",
+    "python-dotenv",
+    "alembic",
+    "python-jose[cryptography]",
+    "pwdlib[argon2]",
+    "pydantic[email]",
+    "pytest",
+    "httpx",
+    "pytest-cov"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "--tb=short"
+testpaths = ["tests"]
